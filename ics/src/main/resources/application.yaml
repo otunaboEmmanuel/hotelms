@@ -27,8 +27,8 @@ spring:
     mail:
       host: smtp.gmail.com
       port: 587
-      username: otunabochidubem@gmail.com
-      password: ppgarugztsiztmte
+      username: support@unitsession.com
+      password: support@12345!
       protocol: smtp
       properties:
         mail:
