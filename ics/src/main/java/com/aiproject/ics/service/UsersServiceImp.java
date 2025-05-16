@@ -1,6 +1,7 @@
 package com.aiproject.ics.service;
 
 import com.aiproject.ics.entity.Users;
+import com.aiproject.ics.enums.Roles;
 import com.aiproject.ics.repository.UsersRepository;
 import com.aiproject.ics.utils.PasswordGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +31,11 @@ public class UsersServiceImp implements UsersService{
             String rawPassword = PasswordGenerator.generatePassword(); // Corrected this line
             String encodedPassword = passwordEncoder.encode(rawPassword);
             users1.setPassword(encodedPassword);
+            users1.setRole(Roles.USER);
             try {
                 String htmlContent = "<html><body>" +
                         "<p>Hi " + users.getUserName() + ",</p>" +
+                        "<p> Welcome To Acadia Grand Hotel, we are happy that you have registered for our application</p>"+
                         "<p>You have been profiled successfully on our Hotel Management System AI application. </p>" +
                         "<p>Please use your Username and password given below to login </p>" +
                         "<p><b>Password: " + rawPassword + "</b></p>" +
