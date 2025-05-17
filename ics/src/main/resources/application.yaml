@@ -25,10 +25,11 @@ spring:
     distance-type: COSINE_DISTANCE
     dimensions: 1536
     mail:
+      debug: true
       host: smtp.gmail.com
       port: 587
       username: otunabochidubem@gmail.com
-      password: ppgarugztsiztmte
+      password: zczapcmagyiwyvlo
       protocol: smtp
       properties:
         mail:
@@ -36,3 +37,4 @@ spring:
             auth: true
             starttls:
               enable:true
+    debug: true

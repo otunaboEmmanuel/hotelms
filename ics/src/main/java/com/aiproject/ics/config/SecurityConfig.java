@@ -1,5 +1,7 @@
 package com.aiproject.ics.config;
 
+import com.aiproject.ics.filter.JwtFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -16,10 +18,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig  {
+    @Autowired
+    private JwtFilter jwtAuthenticationFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // Define PasswordEncoder bean for use in your app
+        return new BCryptPasswordEncoder(11); // Define PasswordEncoder bean for use in your app
     }
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -29,8 +33,8 @@ public class SecurityConfig  {
                                 .anyRequest().permitAll()
 //                        .requestMatchers("/login", "/auth/**","/api/**").permitAll() // Allow login and public paths
 //                        .anyRequest().authenticated() // Secure all other endpoints
-                );
-                //.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // Add JWT filter
+                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // Add JWT filter
 
         return http.build();
     }
