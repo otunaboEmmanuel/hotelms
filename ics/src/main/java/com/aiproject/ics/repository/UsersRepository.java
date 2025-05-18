@@ -1,6 +1,7 @@
 package com.aiproject.ics.repository;
 
 import com.aiproject.ics.entity.Users;
+import com.aiproject.ics.enums.Roles;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,5 +15,5 @@ public interface UsersRepository extends JpaRepository<Users, Integer> {
 
     Optional<Users> findByEmail(String email);
 
-    List<Users> findByRole(String role);
+    List<Users> findByRole(Roles role);
 }

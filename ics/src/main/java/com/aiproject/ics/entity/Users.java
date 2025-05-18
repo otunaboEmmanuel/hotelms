@@ -25,11 +25,11 @@ public class Users implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @NotBlank
+    @NotNull
     private String userName;
-    @NotBlank
+    @NotNull
     private String email;
-    @NotBlank
+    @NotNull
     private String password;
     @Enumerated(EnumType.STRING)
     @Column(name = "role")

@@ -122,14 +122,14 @@ public class UsersController {
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
     @PutMapping("/updateUser/{id}")
-    public ResponseEntity<?> updateUser(@RequestBody Users users, @PathVariable Integer id){
+    public ResponseEntity<?> updateUser(@RequestBody Map<String, String> users, @PathVariable Integer id){
         Map<String,String> response=new HashMap<>();
         Users users1=repository.findById(id).orElse(null);
         if (users1!=null){
-            users1.setRole(users.getRole());
-            users1.setPassword(passwordEncoder.encode(users.getPassword()));
-            users1.setEmail(users.getEmail());
-            users1.setUserName(users.getUserName());
+            users1.setRole(Roles.valueOf(users.get("role")));
+            users1.setPassword(passwordEncoder.encode(users.get("password")));
+            users1.setEmail(users.get("email"));
+            users1.setUserName(users.get("userName"));
             repository.save(users1);
             response.put("code", "00");
             response.put("message","updated successfully");
@@ -163,9 +163,24 @@ public class UsersController {
     }
     @GetMapping("/findByRole/{role}")
     public ResponseEntity<?> userRole(@PathVariable String role){
-        List<Users> users=repository.findByRole(role);
+        List<Users> users=repository.findByRole(Roles.valueOf(role));
         List<UserDto> dtoList=users.stream().map(UserDto::new).toList();
         return ResponseEntity.ok(dtoList);
+    }
+    @PutMapping("/updateRole/{id}")
+    public ResponseEntity<?> updateRole(@RequestBody Map<String,String> data,@PathVariable Integer id){
+        Map<String,String> response=new HashMap<>();
+        Users users=repository.findById(id).orElse(null);
+        if (users!=null){
+            users.setRole(Roles.valueOf(data.get("role")));
+            repository.save(users);
+            response.put("code", "00");
+            response.put("message","updated successfully");
+        }else{
+            response.put("code", "100");
+            response.put("message","user does not exist");
+        }
+        return ResponseEntity.ok(response);
     }
 
 
