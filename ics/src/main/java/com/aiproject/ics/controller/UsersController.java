@@ -160,6 +160,8 @@ public class UsersController {
                         "<p><b>Password: " + rawPassword + "</b></p>" +
                         "<p> See below for more details </p>" +
                         "</body></html>";
+                MailBody mailBody = new MailBody(users.getEmail(), "Registration info", "This is your info " + htmlContent);
+                emailService.sendSimpleMessage(mailBody);
             }catch (Exception e){
                 throw new RuntimeException("email could not be sent");
             }
@@ -215,7 +217,7 @@ public class UsersController {
                 .toList();
         return ResponseEntity.ok(dtoList);
     }
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     @GetMapping("/findByRole/{role}")
     public ResponseEntity<?> userRole(@PathVariable String role){
         String rolecase=role.toUpperCase();
