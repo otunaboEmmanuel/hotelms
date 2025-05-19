@@ -1,24 +1,23 @@
 package com.aiproject.ics.controller;
 
 import com.aiproject.ics.dto.UserDto;
+import com.aiproject.ics.entity.Otp;
 import com.aiproject.ics.entity.Users;
 import com.aiproject.ics.enums.Roles;
-import com.aiproject.ics.repository.UsersRepository;
+import com.aiproject.ics.repository.jpa.ForgotPasswordRepository;
+import com.aiproject.ics.repository.jpa.UsersRepository;
 import com.aiproject.ics.service.EmailService;
 import com.aiproject.ics.service.JwtService;
 import com.aiproject.ics.service.MailBody;
 import com.aiproject.ics.service.UsersService;
 import com.aiproject.ics.utils.PasswordGenerator;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/hotel")
@@ -28,13 +27,16 @@ public class UsersController {
     private final UsersRepository repository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private EmailService emailService;
+    private final ForgotPasswordRepository userOtpRepository;
+    private final EmailService emailService;
 
-    public UsersController(UsersService service, UsersRepository repository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public UsersController(UsersService service, UsersRepository repository, PasswordEncoder passwordEncoder, JwtService jwtService, ForgotPasswordRepository userOtpRepository, EmailService emailService) {
         this.service = service;
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.userOtpRepository = userOtpRepository;
+        this.emailService = emailService;
     }
 
     @PostMapping("/addUser")
@@ -71,6 +73,48 @@ public class UsersController {
             response.put("message", "user does not exist");
         }
         return new ResponseEntity<>(response,HttpStatus.OK);
+    }
+    @PostMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(@RequestBody Map<String,String> data){
+        Map<String, String> response= new HashMap<>();
+      Users user=repository.findByEmail(data.get("email")).orElse(null);
+      if (user!=null){
+          Integer otp=PasswordGenerator.random();
+          Otp otp1=new Otp();
+          otp1.setUser(user);
+          otp1.setOtp(otp);
+          otp1.setExpirationTime(new Date(System.currentTimeMillis()+1000*60*2));
+          userOtpRepository.save(otp1);
+          emailService.sendSimpleMessage(new MailBody(data.get("email"),
+                  "OTP VERIFICATION CODE",
+                  "USE THIS OTP TO CHANGE YOUR PASSWORD"+otp));
+          response.put("code","00");
+          response.put("message","OTP HAS BEEN SENT FOR VERIFICATION, CHECK YOUR EMAIL");
+      }else {
+          response.put("code","100");
+          response.put("message", "email does not exist");
+      }
+      return ResponseEntity.ok(response);
+    }
+    @PostMapping("/otp-verification")
+    public ResponseEntity<?> otpVerification(@RequestBody Map<String,String> data){
+        Map<String,String> response=new HashMap<>();
+        Users user=repository.findByEmail(data.get("email")).orElse(null);
+        Otp otp= userOtpRepository.findByOtpAndUser(Integer.valueOf(data.get("otp")),user).orElse(null);
+        if(user!=null&&otp!=null){
+           if (!otp.getExpirationTime().before(new Date())){
+               response.put("code","00");
+               response.put("message","OTP HAS BEEN VERIFIED");
+           }else{
+               userOtpRepository.deleteById(otp.getId());
+               response.put("code","100");
+               response.put("message","OTP HAS EXPIRED");
+           }
+        }else{
+            response.put("code","100");
+            response.put("message", "email does not exist");
+        }
+        return ResponseEntity.ok(response);
     }
     @PostMapping("/changePassword")
     public ResponseEntity<?> changePassword(@RequestBody Map<String, String> data){
@@ -179,8 +223,8 @@ public class UsersController {
         List<UserDto> dtoList=users.stream().map(UserDto::new).toList();
         return ResponseEntity.ok(dtoList);
     }
-    @PutMapping("/updateRole/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/updateRole/{id}")
     public ResponseEntity<?> updateRole(@RequestBody Map<String,String> data,@PathVariable Integer id){
         Map<String,String> response=new HashMap<>();
         Users users=repository.findById(id).orElse(null);

@@ -1,4 +1,4 @@
-package com.aiproject.ics.repository;
+package com.aiproject.ics.repository.jpa;
 
 import com.aiproject.ics.entity.Users;
 import com.aiproject.ics.enums.Roles;

@@ -2,7 +2,7 @@ package com.aiproject.ics.service;
 
 import com.aiproject.ics.entity.Users;
 import com.aiproject.ics.enums.Roles;
-import com.aiproject.ics.repository.UsersRepository;
+import com.aiproject.ics.repository.jpa.UsersRepository;
 import com.aiproject.ics.utils.PasswordGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
