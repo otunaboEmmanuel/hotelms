@@ -4,12 +4,16 @@ import com.aiproject.ics.dto.UserDto;
 import com.aiproject.ics.entity.Users;
 import com.aiproject.ics.enums.Roles;
 import com.aiproject.ics.repository.UsersRepository;
+import com.aiproject.ics.service.EmailService;
 import com.aiproject.ics.service.JwtService;
+import com.aiproject.ics.service.MailBody;
 import com.aiproject.ics.service.UsersService;
 import com.aiproject.ics.utils.PasswordGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +28,7 @@ public class UsersController {
     private final UsersRepository repository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private EmailService emailService;
 
     public UsersController(UsersService service, UsersRepository repository, PasswordEncoder passwordEncoder, JwtService jwtService) {
         this.service = service;
@@ -88,8 +93,10 @@ public class UsersController {
             response.put("code","100");
             response.put("message", "email does not exist");
         }
+
         return ResponseEntity.ok(response);
     }
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/createAdmin")
     public ResponseEntity<?> createAdmin(@RequestBody Users users){
         Map<String,String> response=new HashMap<>();
@@ -121,6 +128,7 @@ public class UsersController {
         }
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/updateUser/{id}")
     public ResponseEntity<?> updateUser(@RequestBody Map<String, String> users, @PathVariable Integer id){
         Map<String,String> response=new HashMap<>();
@@ -139,6 +147,7 @@ public class UsersController {
         }
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Integer id){
         Map<String,String> response=new HashMap<>();
@@ -153,6 +162,7 @@ public class UsersController {
         }
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/allUsers")
     public ResponseEntity<?> allUsers(){
         List<Users> usersList=repository.findAll();
@@ -161,13 +171,16 @@ public class UsersController {
                 .toList();
         return ResponseEntity.ok(dtoList);
     }
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/findByRole/{role}")
     public ResponseEntity<?> userRole(@PathVariable String role){
-        List<Users> users=repository.findByRole(Roles.valueOf(role));
+        String rolecase=role.toUpperCase();
+        List<Users> users=repository.findByRole(Roles.valueOf(rolecase));
         List<UserDto> dtoList=users.stream().map(UserDto::new).toList();
         return ResponseEntity.ok(dtoList);
     }
     @PutMapping("/updateRole/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateRole(@RequestBody Map<String,String> data,@PathVariable Integer id){
         Map<String,String> response=new HashMap<>();
         Users users=repository.findById(id).orElse(null);

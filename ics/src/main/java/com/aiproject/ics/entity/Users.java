@@ -71,8 +71,8 @@ public class Users implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return role != null
-                ? List.of(new SimpleGrantedAuthority(role.name()))
-                : List.of();
+                ? List.of(new SimpleGrantedAuthority("ROLE_" + role.name()))
+                :List.of();
     }
 
     public String getPassword() {

@@ -16,7 +16,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @EnableMethodSecurity
 @Configuration
-@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig  {
     @Autowired
     private JwtFilter jwtAuthenticationFilter;
@@ -30,7 +29,8 @@ public class SecurityConfig  {
         http.securityMatcher("/**")
                 .csrf(csrf -> csrf.disable()) // Disable CSRF protection for stateless APIs
                 .authorizeHttpRequests(auth -> auth
-                                .anyRequest().permitAll()
+                                .requestMatchers("/hotel/login","/hotel/addUser","/hotel/changePassword").permitAll()
+                                .anyRequest().authenticated()
 //                        .requestMatchers("/login", "/auth/**","/api/**").permitAll() // Allow login and public paths
 //                        .anyRequest().authenticated() // Secure all other endpoints
                 )
