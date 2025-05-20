@@ -265,6 +265,9 @@ public class UsersController {
             users1.setEmail(users.getEmail());
             String password = PasswordGenerator.generatePassword();
             users1.setPassword(passwordEncoder.encode(password));
+            repository.save(users1);
+            response.put("code", "00");
+            response.put("message", "admin created successfully, check email for credentials ");
             try {
                 String htmlContent = "<html><body>" +
                         "<p>Hi " + users.getUsername() + ",</p>" +
@@ -280,9 +283,6 @@ public class UsersController {
                 e.printStackTrace(); // Or log the error
                 throw new RuntimeException("could not send email", e);
             }
-            repository.save(users1);
-            response.put("code", "00");
-            response.put("message", "admin created successfully, check email for credentials ");
         } else {
             response.put("code", "100");
             response.put("message", "email already exists");

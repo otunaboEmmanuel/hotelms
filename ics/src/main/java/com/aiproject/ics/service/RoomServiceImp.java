@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -32,11 +33,12 @@ public class RoomServiceImp implements RoomService{
                 String filePath=saveFileToStorage(file);
                 room1=new Room();
                 room1.setFilepath(filePath);
-                room1.setName(file.getOriginalFilename());
+                room1.setFileName(file.getOriginalFilename());
                 room1.setFileType(file.getContentType());
-                repository.save(room1);
+                Room roomDetail=repository.save(room1);
                 response.put("code","00");
                 response.put("message","Room has been saved");
+                response.put("RoomId",String.valueOf(roomDetail.getId()));
             }else{
                 response.put("code","100");
                 response.put("message","file does not exist");
@@ -58,7 +60,7 @@ public class RoomServiceImp implements RoomService{
                 extension = "." + parts[1];
             }
         }
-        String fileName=UUID.randomUUID().toString().replace("/","") +extension;
+        String fileName=UUID.randomUUID().toString().replace("-","") +extension;
         try{
             File directory=new File(DIRECTORY_PATH);
         if(!directory.exists()){
@@ -74,5 +76,11 @@ public class RoomServiceImp implements RoomService{
             System.out.println("Error saving file: " + e.getMessage());
         }
         return fileName;
+    }
+    @Override
+    public byte[] downloadImageFromFileSystem(String filepath) throws IOException {
+        File fullPath = new File(DIRECTORY_PATH + filepath);
+        log.info("Attempting to download image from: {}", fullPath.getAbsolutePath());
+        return Files.readAllBytes(fullPath.toPath());
     }
 }
