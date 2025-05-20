@@ -7,8 +7,7 @@ import java.util.UUID;
 public class PasswordGenerator {
     public static String generatePassword(){
         String randomPassword= UUID.randomUUID().toString();
-        String random=randomPassword.replaceAll("-","");
-        return random;
+        return randomPassword.replaceAll("-","");
     }
     public  static Integer random(){
         Random random=new Random();
