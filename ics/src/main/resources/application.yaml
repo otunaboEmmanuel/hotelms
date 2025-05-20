@@ -24,17 +24,20 @@ spring:
     index-type: HNSW
     distance-type: COSINE_DISTANCE
     dimensions: 1536
-    mail:
-      debug: true
-      host: smtp.gmail.com
-      port: 587
-      username: otunabochidubem@gmail.com
-      password: zczapcmagyiwyvlo
-      protocol: smtp
-      properties:
-        mail:
-          smtp:
-            auth: true
-            starttls:
-              enable:true
+  mail:
     debug: true
+    host: smtp.gmail.com
+    port: 587
+    username: otunabochidubem@gmail.com
+    password: zczapcmagyiwyvlo
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: false
+        starttls:
+            enable: true
+            required: true
+  debug: true

@@ -23,10 +23,10 @@ public class UsersServiceImp implements UsersService{
             throw new IllegalArgumentException("User cannot be null");
         }
 
-        Users users1 = repository.findByUserName(users.getUserName()).orElse(null);
+        Users users1 = repository.findByUserName(users.getUsername()).orElse(null);
         if (users1 == null) {
             users1=new Users();
-            users1.setUserName(users.getUserName());
+            users1.setUserName(users.getUsername());
             users1.setEmail(users.getEmail());
             String rawPassword = PasswordGenerator.generatePassword(); // Corrected this line
             String encodedPassword = passwordEncoder.encode(rawPassword);
@@ -34,7 +34,7 @@ public class UsersServiceImp implements UsersService{
             users1.setRole(Roles.USER);
             try {
                 String htmlContent = "<html><body>" +
-                        "<p>Hi " + users.getUserName() + ",</p>" +
+                        "<p>Hi " + users.getUsername() + ",</p>" +
                         "<p> Welcome To Acadia Grand Hotel, we are happy that you have registered for our application</p>"+
                         "<p>You have been profiled successfully on our Hotel Management System AI application. </p>" +
                         "<p>Please use your Username and password given below to login </p>" +

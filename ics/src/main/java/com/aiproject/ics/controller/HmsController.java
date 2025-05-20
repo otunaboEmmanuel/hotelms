@@ -23,15 +23,15 @@ public class HmsController {
 
     private String prompt = """
             Your task is to answer the questions about the hotel PDF. Use the information from the DOCUMENTS
-            section to provide accurate answers. If unsure or if the answer isn't found in the DOCUMENTS section, 
+            section to provide accurate answers. If unsure or if the answer isn't found in the DOCUMENTS section,
             simply state that you don't know the answer.
-                        
+
             QUESTION:
             {input}
-                        
+
             DOCUMENTS:
             {documents}
-                        
+
             """;
 
 
@@ -67,5 +67,5 @@ public class HmsController {
                 .collect(Collectors.joining("\n\n"));
 
     }
-    
+
 }

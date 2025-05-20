@@ -26,15 +26,14 @@ public class RoomController {
     @PreAuthorize("hasRole('ADMIN')")
   @PostMapping("/add")
   public ResponseEntity<?> createRoom(@RequestParam("name")String name,
-                                      @RequestParam("price") Integer price,
-                                      @RequestParam("roomNumber")Integer roomNumber,
-                                      @RequestParam("availability")Availabililty availabililty,
+                                      @RequestParam("price") String price,
+                                      @RequestParam("roomNumber")String roomNumber,
                                       @RequestParam(value = "attachments",required = false) MultipartFile file,
                                       Room room){
-      room.setRoomNumber(roomNumber);
+      room.setRoomNumber(Integer.valueOf(roomNumber));
       room.setName(name);
       room.setAvailabililty(Availabililty.YES);
-      room.setPrice(price);
+      room.setPrice(Integer.valueOf(price));
       Map<String,String> uploadResponse=roomService.uploadImageToFileSystem(file,room);
       return new ResponseEntity<>(uploadResponse,HttpStatus.OK);
   }

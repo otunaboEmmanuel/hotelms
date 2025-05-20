@@ -1,5 +1,6 @@
 package com.aiproject.ics.controller;
 
+import com.aiproject.ics.dto.LoginDto;
 import com.aiproject.ics.dto.UserDto;
 import com.aiproject.ics.entity.Otp;
 import com.aiproject.ics.entity.Users;
@@ -17,6 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.*;
 
 @RestController
@@ -147,13 +149,13 @@ public class UsersController {
         Users users1=repository.findByEmail(users.getEmail()).orElse(null);
         if (users1==null){
             users1=new Users();
-            users1.setUserName(users.getUserName());
+            users1.setUserName(users.getUsername());
             users1.setRole(Roles.ADMIN);
             String rawPassword= PasswordGenerator.generatePassword();
             users1.setPassword(passwordEncoder.encode(rawPassword));
             try{
                 String htmlContent = "<html><body>" +
-                        "<p>Hi " + users.getUserName() + ",</p>" +
+                        "<p>Hi " + users.getUsername() + ",</p>" +
                         "<p> Welcome To Acadia Grand Hotel, you have been successfully registered as an admin </p>"+
                         "<p>You have been profiled successfully on our Hotel Management System AI application. </p>" +
                         "<p>Please use your Username and password given below to login </p>" +
@@ -241,6 +243,51 @@ public class UsersController {
         }
         return ResponseEntity.ok(response);
     }
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/create")
+    public ResponseEntity<?> createStaff(@RequestBody Users users) {
+        System.out.println("received request with email = " + users.getEmail());
+        System.out.println("username = " + users.getUsername());
 
+        System.out.println("recieved request with "+users.getUsername());
+        Map<String, String> response = new HashMap<>();
+        Users users1 = repository.findByEmail(users.getEmail()).orElse(null);
+        if (users.getEmail() == null || users.getEmail().isEmpty()) {
+            response.put("code", "101");
+            response.put("message", "Email is required");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        if (users1 == null) {
+            users1 = new Users();
+            users1.setUserName(users.getUsername());
+            users1.setRole(Roles.STAFF);
+            users1.setEmail(users.getEmail());
+            String password = PasswordGenerator.generatePassword();
+            users1.setPassword(passwordEncoder.encode(password));
+            try {
+                String htmlContent = "<html><body>" +
+                        "<p>Hi " + users.getUsername() + ",</p>" +
+                        "<p> Welcome To Acadia Grand Hotel, you have been successfully registered as a staff </p>" +
+                        "<p>You have been profiled successfully on our Hotel Management System AI application. </p>" +
+                        "<p>Please use your Username and password given below to login </p>" +
+                        "<p><b>Password: " + password + "</b></p>" +
+                        "<p> See below for more details </p>" +
+                        "</body></html>";
+                MailBody mailBody = new MailBody(users.getEmail(), "Registration info", "This is your info " + htmlContent);
+                emailService.sendSimpleMessage(mailBody);
+            } catch (Exception e) {
+                e.printStackTrace(); // Or log the error
+                throw new RuntimeException("could not send email", e);
+            }
+            repository.save(users1);
+            response.put("code", "00");
+            response.put("message", "admin created successfully, check email for credentials ");
+        } else {
+            response.put("code", "100");
+            response.put("message", "email already exists");
+        }
+        return ResponseEntity.ok(response);
+    }
 
 }

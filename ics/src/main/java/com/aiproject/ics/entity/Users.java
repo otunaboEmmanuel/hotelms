@@ -18,55 +18,53 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-@AllArgsConstructor
-@NoArgsConstructor
+@Data
 @Table(name = "users")
 public class Users implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @NotNull
+
     private String userName;
-    @NotNull
+
     private String email;
-    @NotNull
+
     private String password;
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
-    @NotNull
     private Roles role;
 
-    public Integer getId() {
-        return id;
-    }
-
-    public Roles getRole() {
-        return role;
-    }
-
-    public void setRole(Roles role) {
-        this.role = role;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
+//    public Integer getId() {
+//        return id;
+//    }
+//
+//    public Roles getRole() {
+//        return role;
+//    }
+//
+//    public void setRole(Roles role) {
+//        this.role = role;
+//    }
+//
+//    public void setId(Integer id) {
+//        this.id = id;
+//    }
+//
+//    public String getUserName() {
+//        return userName;
+//    }
+//
+//    public void setUserName(String userName) {
+//        this.userName = userName;
+//    }
+//
+//    public String getEmail() {
+//        return email;
+//    }
+//
+//    public void setEmail(String email) {
+//        this.email = email;
+//    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
