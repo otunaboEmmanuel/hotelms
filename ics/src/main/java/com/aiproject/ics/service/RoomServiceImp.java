@@ -31,11 +31,10 @@ public class RoomServiceImp implements RoomService{
         if(room1==null){
             if (file!=null){
                 String filePath=saveFileToStorage(file);
-                room1=new Room();
-                room1.setFilepath(filePath);
-                room1.setFileName(file.getOriginalFilename());
-                room1.setFileType(file.getContentType());
-                Room roomDetail=repository.save(room1);
+                room.setFilepath(filePath);
+                room.setFileName(file.getOriginalFilename());
+                room.setFileType(file.getContentType());
+                Room roomDetail=repository.save(room);
                 response.put("code","00");
                 response.put("message","Room has been saved");
                 response.put("RoomId",String.valueOf(roomDetail.getId()));

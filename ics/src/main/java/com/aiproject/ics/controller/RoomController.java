@@ -120,13 +120,13 @@ public class RoomController {
         }
         return ResponseEntity.ok(response);
     }
-    @PreAuthorize("hasRole('ADMIN)")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/allRooms")
     public ResponseEntity<?> allRooms(){
         List<Room> rooms=roomRepository.findAll();
-        List<RoomDto> roomDtos=rooms.stream()
+        List<RoomDto> roomDos=rooms.stream()
                 .map(RoomDto::new).toList();
-        return ResponseEntity.ok(roomDtos);
+        return ResponseEntity.ok(roomDos);
     }
 
 
