@@ -1,5 +1,6 @@
 package com.aiproject.ics.controller;
 
+import com.aiproject.ics.dto.RoomDto;
 import com.aiproject.ics.entity.Room;
 import com.aiproject.ics.enums.Availabililty;
 import com.aiproject.ics.repository.jpa.RoomRepository;
@@ -15,7 +16,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/room")
@@ -91,7 +94,7 @@ public class RoomController {
                 System.out.println(room1);
                 roomRepository.save(room1);
                 response.put("code", "00");
-                response.put("message", "successfully updated".toUpperCase());
+                response.put("message", " Room successfully updated".toUpperCase());
             } else {
                 response.put("code", "100");
                 response.put("message", "file does not exist".toUpperCase());
@@ -102,6 +105,30 @@ public class RoomController {
         }
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteRoom(@PathVariable Integer id){
+        Map<String, String> response =new HashMap<>();
+        Room room=roomRepository.findById(id).orElse(null);
+        if (room!=null){
+            roomRepository.deleteById(id);
+            response.put("code", "00");
+            response.put("message", "Room successfully deleted".toUpperCase());
+        }else {
+            response.put("code", "00");
+            response.put("message", "Room does not exist".toUpperCase());
+        }
+        return ResponseEntity.ok(response);
+    }
+    @PreAuthorize("hasRole('ADMIN)")
+    @GetMapping("/allRooms")
+    public ResponseEntity<?> allRooms(){
+        List<Room> rooms=roomRepository.findAll();
+        List<RoomDto> roomDtos=rooms.stream()
+                .map(RoomDto::new).toList();
+        return ResponseEntity.ok(roomDtos);
+    }
+
 
 
 }
