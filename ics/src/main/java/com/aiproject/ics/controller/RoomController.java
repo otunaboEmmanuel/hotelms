@@ -4,6 +4,8 @@ import com.aiproject.ics.entity.Room;
 import com.aiproject.ics.enums.Availabililty;
 import com.aiproject.ics.repository.jpa.RoomRepository;
 import com.aiproject.ics.service.RoomService;
+import com.aiproject.ics.service.RoomServiceImp;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,11 +22,13 @@ import java.util.Map;
 public class RoomController {
     private final RoomService roomService;
     private final RoomRepository roomRepository;
+    private final RoomServiceImp serviceImp;
 
 
-    public RoomController(RoomService roomService, RoomRepository roomRepository) {
+    public RoomController(RoomService roomService, RoomRepository roomRepository, RoomServiceImp serviceImp) {
         this.roomService = roomService;
         this.roomRepository = roomRepository;
+        this.serviceImp = serviceImp;
     }
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/add")
@@ -65,5 +69,39 @@ public class RoomController {
                 .contentType(MediaType.valueOf(contentType))
                 .body(imageData);
     }
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> updateRoom(@RequestParam("name") String name,
+                                        @RequestParam("price") String price,
+                                        @RequestParam("roomNumber") String roomNumber,
+                                        @RequestParam(value = "attachments",required = false) MultipartFile file,
+                                        @PathVariable Integer id) throws IOException {
+        Map<String, String> response = new HashMap<>();
+        Room room1 = roomRepository.findById(id).orElse(null);
+        if (room1 != null) {
+            if (file != null) {
+            room1.setRoomNumber(Integer.valueOf(roomNumber));
+            room1.setName(name);
+            room1.setPrice(Integer.valueOf(price));
+            room1.setAvailabililty(Availabililty.YES);
+            String filepath= serviceImp.saveFileToStorage(file);
+                room1.setFilepath(RoomServiceImp.DIRECTORY_PATH+filepath);
+                room1.setFileType(file.getContentType());
+                room1.setFileName(file.getOriginalFilename());
+                System.out.println(room1);
+                roomRepository.save(room1);
+                response.put("code", "00");
+                response.put("message", "successfully updated".toUpperCase());
+            } else {
+                response.put("code", "100");
+                response.put("message", "file does not exist".toUpperCase());
+            }
+        }else {
+            response.put("code", "100");
+            response.put("message", "room does not exist".toUpperCase());
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
 
 }

@@ -17,7 +17,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 public class RoomServiceImp implements RoomService{
-    static String DIRECTORY_PATH = "/u02/uploads/";
+     public static String DIRECTORY_PATH = "/u02/uploads/";
     private final RoomRepository repository;
 
     public RoomServiceImp(RoomRepository repository) {
