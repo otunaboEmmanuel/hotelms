@@ -6,6 +6,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.relational.core.sql.In;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,8 @@ import java.util.function.Function;
 public class JwtService {
      // Generate a strong key
     private final long jwtExpirationMs = 1000 * 60 * 60; // 1 hour
+    @Value("${jwt.secret}")
+    private String jwtSecret;
 
     // Extract username from JWT
     public String extractUsername(String token) {
@@ -90,8 +93,7 @@ public class JwtService {
                 .compact();
     }
     private Key getSignKey() {
-        String SECRET = "2fx5c8x76dILgO+XomBOmAo6t4Y98y1C9uIV5zd5kOQ=";
-        byte[] keyBytes= Decoders.BASE64.decode(SECRET);
+        byte[] keyBytes= Decoders.BASE64.decode(jwtSecret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }

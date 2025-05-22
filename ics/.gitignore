@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+# Ignore application.yaml (contains sensitive config)
+application.yaml
+ics/src/main/resources/application.yaml
+
