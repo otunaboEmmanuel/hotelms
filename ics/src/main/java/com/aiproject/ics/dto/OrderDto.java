@@ -1,10 +1,20 @@
 package com.aiproject.ics.dto;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public class OrderDto {
     private Integer userId;
-    private Integer RoomId;
+    private List<Integer> RoomIds;
+
+    public List<Integer> getRoomIds() {
+        return RoomIds;
+    }
+
+    public void setRoomId(List<Integer> roomIds) {
+        RoomIds = roomIds;
+    }
+
     private LocalDate checkIn;
     private LocalDate checkOut;
     private Integer nights;
@@ -17,13 +27,7 @@ public class OrderDto {
         this.userId = userId;
     }
 
-    public Integer getRoomId() {
-        return RoomId;
-    }
 
-    public void setRoomId(Integer roomId) {
-        RoomId = roomId;
-    }
 
     public LocalDate getCheckIn() {
         return checkIn;

@@ -128,7 +128,11 @@ public class RoomController {
                 .map(RoomDto::new).toList();
         return ResponseEntity.ok(roomDos);
     }
-
-
+    @GetMapping("/findAvailableRooms/{available}")
+    public ResponseEntity<?> findRoom(@PathVariable String available){
+        available= String.valueOf(Availabililty.YES);
+        List<Room> rooms =roomRepository.findByAvailabililty(Availabililty.valueOf(available));
+        return ResponseEntity.ok(rooms);
+    }
 
 }

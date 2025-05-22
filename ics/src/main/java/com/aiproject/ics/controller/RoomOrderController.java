@@ -1,6 +1,6 @@
 package com.aiproject.ics.controller;
-
 import com.aiproject.ics.dto.OrderDto;
+import com.aiproject.ics.dto.RoomOrderDto;
 import com.aiproject.ics.entity.Room;
 import com.aiproject.ics.entity.RoomOrder;
 import com.aiproject.ics.entity.RoomOrderItem;
@@ -10,22 +10,14 @@ import com.aiproject.ics.repository.jpa.RoomOrderItemRepository;
 import com.aiproject.ics.repository.jpa.RoomOrderRepository;
 import com.aiproject.ics.repository.jpa.RoomRepository;
 import com.aiproject.ics.repository.jpa.UsersRepository;
-import com.aiproject.ics.service.RoomOrderService;
-import com.aiproject.ics.service.RoomService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.aiproject.ics.service.EmailService;
+import com.aiproject.ics.service.MailBody;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/order")
@@ -34,32 +26,47 @@ public class RoomOrderController {
     private final RoomRepository roomRepository;
     private final RoomOrderRepository roomOrderRepository;
     private final RoomOrderItemRepository roomOrderItemRepository;
+    private final EmailService emailService;
 
-    public RoomOrderController(UsersRepository usersRepository, RoomRepository roomRepository, RoomOrderRepository roomOrderRepository, RoomOrderItemRepository roomOrderItemRepository) {
+    public RoomOrderController(UsersRepository usersRepository, RoomRepository roomRepository, RoomOrderRepository roomOrderRepository, RoomOrderItemRepository roomOrderItemRepository, EmailService emailService) {
         this.usersRepository = usersRepository;
         this.roomRepository = roomRepository;
         this.roomOrderRepository = roomOrderRepository;
         this.roomOrderItemRepository = roomOrderItemRepository;
+        this.emailService = emailService;
     }
-
-    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @PostMapping("/room")
-    public ResponseEntity<?> bookRoom(@RequestBody OrderDto request) {
-        Map<String,String> response=new HashMap<>();
-        Users user=usersRepository.findById(request.getUserId()).orElse(null);
-        Room room=roomRepository.findById(request.getRoomId()).orElse(null);
-        if (user==null||room==null){
-            response.put("code","100");
-            response.put("message","room or user does not exist".toUpperCase());
+    public ResponseEntity<?> bookRooms(@RequestBody OrderDto request) {
+        Map<String, String> response = new HashMap<>();
+
+        Users user = usersRepository.findById(request.getUserId()).orElse(null);
+        if (user == null) {
+            response.put("code", "100");
+            response.put("message", "User does not exist");
             return ResponseEntity.badRequest().body(response);
         }
-        if (room.getAvailabililty()== Availabililty.NO){
-            response.put("code","100");
-            response.put("message","room is already booked".toUpperCase());
+
+        List<Room> rooms = roomRepository.findAllById(request.getRoomIds()); // expects List<Integer>
+        if (rooms.size() != request.getRoomIds().size()) {
+            response.put("code", "100");
+            response.put("message", "One or more rooms do not exist");
             return ResponseEntity.badRequest().body(response);
         }
-        double totalPrice= room.getPrice()*request.getNights();
-       RoomOrder roomOrder=new RoomOrder();
+
+        for (Room room : rooms) {
+            if (room.getAvailabililty() == Availabililty.NO) {
+                response.put("code", "100");
+                response.put("message", "One or more rooms are already booked");
+                return ResponseEntity.badRequest().body(response);
+            }
+        }
+
+        double totalPrice = rooms.stream()
+                .mapToDouble(room -> room.getPrice() * request.getNights())
+                .sum();
+
+        RoomOrder roomOrder = new RoomOrder();
         roomOrder.setUser(user);
         roomOrder.setStatus("pending");
         roomOrder.setCheckIn(request.getCheckIn());
@@ -68,17 +75,162 @@ public class RoomOrderController {
         roomOrder.setRooms(new ArrayList<>());
         roomOrderRepository.save(roomOrder);
 
-        RoomOrderItem roomOrderItem=new RoomOrderItem(room, request.getNights(), roomOrder);
-        roomOrderItemRepository.save(roomOrderItem);
+        List<RoomOrderItem> orderItems = new ArrayList<>();
+        for (Room room : rooms) {
+            RoomOrderItem item = new RoomOrderItem(room, request.getNights(), roomOrder);
+            orderItems.add(item);
+            room.setAvailabililty(Availabililty.NO); // Mark as booked
+            roomRepository.save(room);
+        }
+        roomOrderItemRepository.saveAll(orderItems);
+        roomOrder.setRooms(orderItems);
+        RoomOrder savedOrder = roomOrderRepository.save(roomOrder);
 
-        roomOrder.setRooms(new ArrayList<>(List.of(roomOrderItem)));
-        roomOrderRepository.save(roomOrder);
-        room.setAvailabililty(Availabililty.NO);
-        roomRepository.save(room);
+        // Email Notification
+        try {
+            String htmlContent = "<html><body>" +
+                    "<p>Hi " + user.getUsername() + ",</p>" +
+                    "<p>Welcome to Acadia Grand Hotel!</p>" +
+                    "<p>You have successfully booked " + rooms.size() + " room(s). Please wait for admin approval.</p>" +
+                    "</body></html>";
 
-        response.put("code","00");
-        response.put("message","Room successfully Booked".toUpperCase());
+            MailBody mailBody = new MailBody(user.getEmail(), "Booking Info", htmlContent);
+            emailService.sendSimpleMessage(mailBody);
+        } catch (Exception e) {
+            System.out.println("Email Error: " + e.getMessage());
+        }
+
+        response.put("code", "00");
+        response.put("message", "Rooms successfully booked");
+        response.put("orderId", String.valueOf(savedOrder.getId()));
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("hasAnyRole('USER','ADMIN','STAFF')")
+    @PostMapping("/cancel-order/{id}")
+    public ResponseEntity<?> cancelOrder(@PathVariable Integer id ){
+        Map<String, String> response=new HashMap<>();
+        RoomOrder roomOrder=roomOrderRepository.findById(id).orElse(null);
+        if (roomOrder!=null){
+            roomOrderRepository.deleteById(id);
+            response.put("code","00");
+            response.put("message","Room order with id "+roomOrder.getId()+ "has been deleted".toUpperCase());
+            roomOrder.getRooms().stream().forEach(
+                    roomOrderItem -> {
+                        Room room=roomOrderItem.getRoom();
+                        room.setAvailabililty(Availabililty.YES);
+                        roomRepository.save(room);
+                    }
+            );
+        }else{
+            response.put("code","100");
+            response.put("message", "Order does not exist");
+        }
+           return ResponseEntity.ok(response);
+    }
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
+    @PostMapping("/approve-booking/{id}/{status}")
+    public ResponseEntity<?> updateBook(@PathVariable Integer id, @PathVariable String status){
+        Map<String,String> response=new HashMap<>();
+        RoomOrder order=roomOrderRepository.findById(id).orElse(null);
+        if (order != null) {
+           if (status.equalsIgnoreCase("approved")||status.equalsIgnoreCase("denied")){
+               response.put("code","00");
+               response.put("message","successfully updated".toUpperCase());
+               order.setStatus(status.toLowerCase());
+               roomOrderRepository.save(order);
+               if (status.equals("approved")){
+               try{
+                   String roomNumbers = order.getRooms().stream()
+                           .map(item -> String.valueOf(item.getRoom().getRoomNumber()))
+                           .collect(Collectors.joining(", "));
+
+                   String htmlContent = "<html><body>" +
+                           "<p>Hi " + order.getUser().getUsername() + ",</p>" +
+                           "<p>Welcome to Acadia Grand Hotel, we are happy that you have booked a room.</p>" +
+                           "<p>Your booking has been <b>approved</b>. Please show this confirmation when you arrive.</p>" +
+                           "<p><strong>Order ID:</strong> " + order.getId() + "<br>" +
+                           "<strong>Room Number(s):</strong> " + roomNumbers + "</p>" +
+                           "</body></html>";
+
+                   MailBody mailBody = new MailBody(
+                           order.getUser().getEmail(),
+                           "Booking Confirmation",
+                           htmlContent
+                   );
+                   emailService.sendSimpleMessage(mailBody);
+
+               } catch (Exception e) {
+                   System.out.println(e.getMessage());
+               }
+               }else{
+                   order.getRooms().forEach(roomOrderItem -> {
+                       Room room=roomOrderItem.getRoom();
+                       room.setAvailabililty(Availabililty.YES);
+                       roomRepository.save(room);
+                   }
+                   );
+                   response.put("code","100");
+                   response.put("message","Order has been denied".toUpperCase());
+               }
+
+           }else {
+               response.put("code","100");
+               response.put("message","status must be approved or denied".toUpperCase());
+           }
+        }else {
+            response.put("code","100");
+            response.put("message","Room order with"+id+" can not be found".toUpperCase());
+        }
+        return ResponseEntity.ok(response);
+    }
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
+    @GetMapping("/orders")
+    public ResponseEntity<?> allOrders(){
+        List<RoomOrder> orders=roomOrderRepository.findAll();
+        List<RoomOrderDto> roomOrderDtos=orders.stream()
+                .map(RoomOrderDto::new).toList();
+        return ResponseEntity.ok(roomOrderDtos);
+    }
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
+    @GetMapping("/orders/{status}")
+    public ResponseEntity<?> allApprovedOrders(@PathVariable String status){
+        Map<String, String> response=new HashMap<>();
+        if (status.equals("approved")){
+        List<RoomOrder> orders=roomOrderRepository.findByStatus(status);
+        List<RoomOrderDto> roomOrderDtos=orders.stream()
+                .map(RoomOrderDto::new).toList();
+        return ResponseEntity.ok(roomOrderDtos);
+        }else {
+            response.put("code","100");
+            response.put("message","not an approved order".toUpperCase());
+            return ResponseEntity.ok(response);
+        }
+    }
+    @PreAuthorize("hasAnyRole('USER','ADMIN','STAFF')")
+    @PostMapping("/{userId}")
+    public ResponseEntity<?> userOrders(@PathVariable Integer userId){
+        Map<String,String> response=new HashMap<>();
+        Users user=usersRepository.findById(userId).orElse(null);
+        if (user == null) {
+            response.put("code", "100");
+            response.put("message", "User not found".toUpperCase());
+            return ResponseEntity.badRequest().body(response);
+        }
+        List<RoomOrder> orders=roomOrderRepository.findAllByUserAndStatus(user,"approved");
+        if (!orders.isEmpty()){
+            List<RoomOrderDto> orderDtos=orders.stream()
+                    .map(RoomOrderDto::new).toList();
+            return ResponseEntity.ok(orderDtos);
+        }else{
+            response.put("code","100");
+            response.put("message","No room has been approved for this user".toUpperCase());
+        }
+        return ResponseEntity.ok(response);
+    }
+
+
 }
+
+
+

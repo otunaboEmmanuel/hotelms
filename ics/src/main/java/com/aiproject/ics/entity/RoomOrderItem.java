@@ -25,4 +25,7 @@ public class RoomOrderItem {
         this.nights = nights;
         this.roomOrder = roomOrder;
     }
+
+    public RoomOrderItem() {
+    }
 }

@@ -27,8 +27,8 @@ public class EmailService {
             helper.setTo(mailBody.getTo());
             helper.setSubject(mailBody.getSubject());
             helper.setText(mailBody.getText(), true);
-            FileSystemResource file=new FileSystemResource(new File("C:\\Users\\otuna\\Downloads\\AdobeStock_1070417863_Preview.jpeg"));// true for HTML content
-            helper.addAttachment(file.getFilename(),file);
+           // FileSystemResource file=new FileSystemResource(new File("C:\\Users\\otuna\\Downloads\\AdobeStock_1070417863_Preview.jpeg"));// true for HTML content
+            //helper.addAttachment(file.getFilename(),file);
             mailSender.send(message);
         } catch (MessagingException e) {
             System.err.println("Failed to send email: " + e.getMessage());
