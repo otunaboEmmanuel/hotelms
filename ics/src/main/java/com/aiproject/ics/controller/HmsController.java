@@ -41,7 +41,7 @@ public class HmsController {
         this.vectorStore = vectorStore;
     }
 
-    @GetMapping("/test")
+    @GetMapping("/ask-question")
     public String simplify(@RequestParam(value = "question",
             defaultValue = "List all the Rooms available")
                            String question) {
