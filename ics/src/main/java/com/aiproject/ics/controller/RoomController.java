@@ -128,6 +128,7 @@ public class RoomController {
                 .map(RoomDto::new).toList();
         return ResponseEntity.ok(roomDos);
     }
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'USER')")
     @GetMapping("/findAvailableRooms/{available}")
     public ResponseEntity<?> findRoom(@PathVariable String available){
         available= String.valueOf(Availabililty.YES);
