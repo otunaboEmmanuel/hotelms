@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 public class HmsApplication {
 
 	public static void main(String[] args) {
+		System.out.println("ENV TEST DB USERNAME = " + System.getenv("DATASOURCE_USERNAME"));
 		SpringApplication.run(HmsApplication.class, args);
 	}
 

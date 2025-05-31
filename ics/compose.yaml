@@ -5,7 +5,7 @@ services:
       - 'POSTGRES_DB=ics'
       - 'POSTGRES_PASSWORD=postgres'
       - 'POSTGRES_USER=postgres'
-    labels:
-      - "org.springframework.boot.service-connection=postgres"
+#    labels:
+#      - "org.springframework.boot.service-connection=postgres"
     ports:
       - '5432'

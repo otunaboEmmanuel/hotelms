@@ -7,8 +7,12 @@ import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +25,7 @@ public class DataLoader {
     @Autowired
     private final JdbcClient jdbcClient;
 
-    public DataLoader(VectorStore vectorStore, JdbcClient jdbcClient) {
+    public DataLoader(@Lazy VectorStore vectorStore, JdbcClient jdbcClient) {
         this.vectorStore = vectorStore;
         this.jdbcClient = jdbcClient;
     }
@@ -43,4 +47,6 @@ public class DataLoader {
             vectorStore.accept(textSplitter.apply(reader.get()));
         }
     }
+
+
 }
