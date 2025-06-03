@@ -2,7 +2,7 @@ spring:
   docker:
     compose:
       file: ics/compose.yaml
-      enabled: false
+      enabled: true
   application:
     name: ics
   jpa:
@@ -13,10 +13,9 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   datasource:
-    url: jdbc:postgresql://dpg-d0tdhaumcj7s73dfs630-a.oregon-postgres.render.com/hotel_ms
-    username: hotel_ms_user
-    password: fsNt3K2mZzUO3N0pUGuNBahLDrltO5zz
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/ics
+    username: postgres
+    password: postgres
   ai:
     openai:
       api-key: ${MY_API_KEY}

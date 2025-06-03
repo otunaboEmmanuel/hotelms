@@ -6,7 +6,10 @@ import com.aiproject.ics.enums.Availabililty;
 import com.aiproject.ics.repository.jpa.RoomRepository;
 import com.aiproject.ics.service.RoomService;
 import com.aiproject.ics.service.RoomServiceImp;
-import jakarta.persistence.criteria.CriteriaBuilder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +21,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/room")
@@ -122,8 +124,10 @@ public class RoomController {
     }
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/allRooms")
-    public ResponseEntity<?> allRooms(){
-        List<Room> rooms=roomRepository.findAll();
+    public ResponseEntity<?> allRooms(@RequestParam (name = "page",defaultValue = "0",required = false) int page,
+                                      @RequestParam(name = "size",defaultValue = "10",required = false)int size){
+        Pageable pageable=  PageRequest.of(page,size, Sort.by("id").descending());
+        Page<Room> rooms=roomRepository.findAllRoom(pageable);
         List<RoomDto> roomDos=rooms.stream()
                 .map(RoomDto::new).toList();
         return ResponseEntity.ok(roomDos);

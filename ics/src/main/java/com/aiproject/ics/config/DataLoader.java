@@ -17,7 +17,6 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Component;
 
 @Component
-
 @Profile("!test")
 public class DataLoader {
     @Autowired
@@ -25,7 +24,7 @@ public class DataLoader {
     @Autowired
     private final JdbcClient jdbcClient;
 
-    public DataLoader(@Lazy VectorStore vectorStore, JdbcClient jdbcClient) {
+    public DataLoader( VectorStore vectorStore, JdbcClient jdbcClient) {
         this.vectorStore = vectorStore;
         this.jdbcClient = jdbcClient;
     }

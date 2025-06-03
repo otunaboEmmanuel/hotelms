@@ -33,6 +33,5 @@ build/
 .vscode/
 # Ignore application.yaml (contains sensitive config)
 application.yaml
-ics/src/main/resources/application.yaml
-ics/src/main/resources/schema.sql
+
 
