@@ -1,0 +1,49 @@
+spring:
+  docker:
+    compose:
+      file: ics/compose.yaml
+      enabled: false
+  application:
+    name: ics
+  jpa:
+    hibernate:
+      ddl-auto: update
+      show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  datasource:
+    url: jdbc:postgresql://dpg-d0tdhaumcj7s73dfs630-a.oregon-postgres.render.com/hotel_ms
+    username: hotel_ms_user
+    password: fsNt3K2mZzUO3N0pUGuNBahLDrltO5zz
+    driver-class-name: org.postgresql.Driver
+  ai:
+    openai:
+      api-key: ${MY_API_KEY}
+      chat:
+        options:
+          model: gpt-4
+  vectorstore:
+    pgvector:
+    index-type: HNSW
+    distance-type: COSINE_DISTANCE
+    dimensions: 1536
+  mail:
+    debug: true
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: false
+        starttls:
+            enable: true
+            required: true
+  debug: true
+jwt:
+  secret: 2fx5c8x76dILgO+XomBOmAo6t4Y98y1C9uIV5zd5kOQ=
