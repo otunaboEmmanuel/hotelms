@@ -124,13 +124,11 @@ public class RoomController {
     }
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/allRooms")
-    public ResponseEntity<?> allRooms(@RequestParam (name = "page",defaultValue = "0",required = false) int page,
+    public Page<?> allRooms(@RequestParam (name = "page",defaultValue = "0",required = false) int page,
                                       @RequestParam(name = "size",defaultValue = "10",required = false)int size){
         Pageable pageable=  PageRequest.of(page,size, Sort.by("id").descending());
         Page<Room> rooms=roomRepository.findAllRoom(pageable);
-        List<RoomDto> roomDos=rooms.stream()
-                .map(RoomDto::new).toList();
-        return ResponseEntity.ok(roomDos);
+        return rooms.map(RoomDto::new);
     }
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF', 'USER')")
     @GetMapping("/findAvailableRooms/{available}")

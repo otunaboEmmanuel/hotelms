@@ -12,6 +12,10 @@ import com.aiproject.ics.repository.jpa.RoomRepository;
 import com.aiproject.ics.repository.jpa.UsersRepository;
 import com.aiproject.ics.service.EmailService;
 import com.aiproject.ics.service.MailBody;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -186,18 +190,21 @@ public class RoomOrderController {
     }
     @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     @GetMapping("/orders")
-    public ResponseEntity<?> allOrders(){
-        List<RoomOrder> orders=roomOrderRepository.findAll();
-        List<RoomOrderDto> roomOrderDtos=orders.stream()
-                .map(RoomOrderDto::new).toList();
-        return ResponseEntity.ok(roomOrderDtos);
+    public Page<?> allOrders(@RequestParam(name = "page",defaultValue = "0",required = false)int page,
+                             @RequestParam(name = "size",defaultValue = "10",required = false) int size){
+        Pageable pageable= PageRequest.of(page,size, Sort.by("id").descending());
+        Page<RoomOrder> orders=roomOrderRepository.findAllOrders(pageable);
+        return orders.map(RoomOrderDto::new);
     }
     @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     @GetMapping("/orders/{status}")
-    public ResponseEntity<?> allApprovedOrders(@PathVariable String status){
+    public ResponseEntity<?> allApprovedOrders(@PathVariable String status,
+                                               @RequestParam(name = "page",defaultValue = "0",required = false)int page,
+                                               @RequestParam(name = "size",defaultValue = "10",required = false) int size){
         Map<String, String> response=new HashMap<>();
+        Pageable pageable= PageRequest.of(page,size, Sort.by("id").descending());
         if (status.equals("approved")){
-        List<RoomOrder> orders=roomOrderRepository.findByStatus(status);
+        Page <RoomOrder> orders=roomOrderRepository.findPagesByStatus(pageable,status);
         List<RoomOrderDto> roomOrderDtos=orders.stream()
                 .map(RoomOrderDto::new).toList();
         return ResponseEntity.ok(roomOrderDtos);
@@ -209,7 +216,10 @@ public class RoomOrderController {
     }
     @PreAuthorize("hasAnyRole('USER','ADMIN','STAFF')")
     @PostMapping("/{userId}")
-    public ResponseEntity<?> userOrders(@PathVariable Integer userId){
+    public ResponseEntity<?> userOrders(@PathVariable Integer userId,
+                                        @RequestParam(name = "page",defaultValue = "0",required = false)int page,
+                                        @RequestParam(name = "size",defaultValue = "10",required = false) int size){
+        Pageable pageable= PageRequest.of(page,size, Sort.by("id").descending());
         Map<String,String> response=new HashMap<>();
         Users user=usersRepository.findById(userId).orElse(null);
         if (user == null) {
@@ -217,10 +227,9 @@ public class RoomOrderController {
             response.put("message", "User not found".toUpperCase());
             return ResponseEntity.badRequest().body(response);
         }
-        List<RoomOrder> orders=roomOrderRepository.findAllByUserAndStatus(user,"approved");
+        Page<RoomOrder> orders=roomOrderRepository.findAllByUserAndStatus(pageable,user,"approved");
         if (!orders.isEmpty()){
-            List<RoomOrderDto> orderDtos=orders.stream()
-                    .map(RoomOrderDto::new).toList();
+            Page<RoomOrderDto> orderDtos=orders.map(RoomOrderDto::new);
             return ResponseEntity.ok(orderDtos);
         }else{
             response.put("code","100");

@@ -12,6 +12,10 @@ import com.aiproject.ics.service.JwtService;
 import com.aiproject.ics.service.MailBody;
 import com.aiproject.ics.service.UsersService;
 import com.aiproject.ics.utils.PasswordGenerator;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -212,20 +216,21 @@ public class UsersController {
     }
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/allUsers")
-    public ResponseEntity<?> allUsers(){
-        List<Users> usersList=repository.findAll();
-        List<UserDto> dtoList=usersList.stream()
-                .map(UserDto::new)
-                .toList();
-        return ResponseEntity.ok(dtoList);
+    public Page<?> allUsers(@RequestParam(name = "page",defaultValue = "0",required = false)int page,
+                                      @RequestParam(name = "size", defaultValue = "10",required = false) int size){
+        Pageable pageable= PageRequest.of(page,size, Sort.by("id").descending());
+        Page<Users> usersList=repository.findAllUsers(pageable);
+        return usersList.map(UserDto::new);
     }
     @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     @GetMapping("/findByRole/{role}")
-    public ResponseEntity<?> userRole(@PathVariable String role){
+    public Page<?> userRole(@PathVariable String role,
+                                      @RequestParam(name = "page",defaultValue = "0",required = false) int page,
+                                      @RequestParam(name = "size",defaultValue = "5",required = false)int size){
+        Pageable pageable=PageRequest.of(page,size,Sort.by("id").descending());
         String rolecase=role.toUpperCase();
-        List<Users> users=repository.findByRole(Roles.valueOf(rolecase));
-        List<UserDto> dtoList=users.stream().map(UserDto::new).toList();
-        return ResponseEntity.ok(dtoList);
+        Page<Users> users=repository.findByRole(pageable,Roles.valueOf(rolecase));
+        return users.map(UserDto::new);
     }
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/updateRole/{id}")
