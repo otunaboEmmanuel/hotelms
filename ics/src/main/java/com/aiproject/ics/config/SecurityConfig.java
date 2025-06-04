@@ -29,7 +29,14 @@ public class SecurityConfig  {
         http.securityMatcher("/**")
                 .csrf(csrf -> csrf.disable()) // Disable CSRF protection for stateless APIs
                 .authorizeHttpRequests(auth -> auth
-                                .requestMatchers("/hotel/login","/hotel/addUser","/hotel/changePassword","/hotel/otp-verification","/hotel/verify-email","/ai/**").permitAll()
+                                .requestMatchers("/hotel/login","/hotel/addUser",
+                                        "/hotel/changePassword",
+                                        "/hotel/otp-verification",
+                                        "/hotel/verify-email",
+                                        "/ai/**",
+                                        "/v3/api-docs/**",
+                                        "/swagger-ui/**",
+                                        "/swagger-ui.html").permitAll()
                                 .anyRequest().authenticated()
 //                        .requestMatchers("/login", "/auth/**","/api/**").permitAll() // Allow login and public paths
 //                        .anyRequest().authenticated() // Secure all other endpoints
