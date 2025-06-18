@@ -18,9 +18,9 @@ import java.util.UUID;
 @Service
 public class RoomServiceImp implements RoomService{
      public static String DIRECTORY_PATH = "/u02/uploads/";
-    private final RoomRepository repository;
+     private final RoomRepository repository;
 
-    public RoomServiceImp(RoomRepository repository) {
+     public RoomServiceImp(RoomRepository repository) {
         this.repository = repository;
     }
 

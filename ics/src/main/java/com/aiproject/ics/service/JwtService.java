@@ -63,7 +63,7 @@ public class JwtService {
     // Validate the token
     public boolean validateToken(String token, org.springframework.security.core.userdetails.UserDetails userDetails) {
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
     // Check if the token is expired
@@ -77,6 +77,7 @@ public class JwtService {
         Map<String, Object> claims = new HashMap<>();
         claims.put("id", id);
         claims.put("role", role);
+        claims.put("username",username);
         claims.put("email", email);
         return createToken(claims, username);
     }

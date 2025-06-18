@@ -119,13 +119,11 @@ public class RoomOrderController {
             roomOrderRepository.deleteById(id);
             response.put("code","00");
             response.put("message","Room order with id "+roomOrder.getId()+ "has been deleted".toUpperCase());
-            roomOrder.getRooms().stream().forEach(
-                    roomOrderItem -> {
-                        Room room=roomOrderItem.getRoom();
-                        room.setAvailabililty(Availabililty.YES);
-                        roomRepository.save(room);
-                    }
-            );
+            for (RoomOrderItem roomOrderItem : roomOrder.getRooms()) {
+                Room room = roomOrderItem.getRoom();
+                room.setAvailabililty(Availabililty.YES);
+                roomRepository.save(room);
+            }
         }else{
             response.put("code","100");
             response.put("message", "Order does not exist");

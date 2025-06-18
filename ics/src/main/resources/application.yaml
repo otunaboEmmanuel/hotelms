@@ -38,11 +38,23 @@ spring:
       mail:
         smtp:
           auth: true
-          ssl:
-            enable: false
-        starttls:
-            enable: true
-            required: true
+#          ssl:
+#            enable: false
+#        starttls:
+#            enable: true
+#            required: true
   debug: true
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: Ov23lipe5SKwxsjqUJ0y
+            client-secret: 1358c663043434b0021f8283404fc292123d1073
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - read:user
+              - user:email
+
 jwt:
   secret: 2fx5c8x76dILgO+XomBOmAo6t4Y98y1C9uIV5zd5kOQ=

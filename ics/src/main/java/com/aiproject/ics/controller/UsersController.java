@@ -93,7 +93,7 @@ public class UsersController {
           userOtpRepository.save(otp1);
           emailService.sendSimpleMessage(new MailBody(data.get("email"),
                   "OTP VERIFICATION CODE",
-                  "USE THIS OTP TO CHANGE YOUR PASSWORD"+otp));
+                  "USE THIS OTP TO CHANGE YOUR PASSWORD "+otp));
           response.put("code","00");
           response.put("message","OTP HAS BEEN SENT FOR VERIFICATION, CHECK YOUR EMAIL");
       }else {
